@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fuzz &amp; Bloom — Xia's Collections</title>
+  <link rel="icon" type="image/jpeg" href="rg.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="fb-addon.css">
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+  <button onclick="window.scrollTo({top:0,behavior:'smooth'})" class="back-top" id="backTop">↑</button>
+
+  <div class="price-modal" id="priceModal">
+    <div class="price-box">
+      <button class="price-close" id="priceClose">✕</button>
+      <img src="f7.jpg" alt="Price List" class="price-img" onerror="this.style.display='none'"/>
+      <div class="price-title">Wire Flower Prices 🌸</div>
+      <div class="price-subtitle">Handcrafted by Xia · Cebu, Philippines</div>
+      <div class="price-list">
+        <div class="price-row"><span class="price-flower">🌹 Rose</span><span class="price-amt">₱50</span></div>
+        <div class="price-row"><span class="price-flower">🌷 Tulips</span><span class="price-amt">₱45</span></div>
+        <div class="price-row"><span class="price-flower">🌺 Habiscus</span><span class="price-amt">₱50</span></div>
+        <div class="price-row"><span class="price-flower">🌸 Small Lily</span><span class="price-amt">₱30</span></div>
+        <div class="price-row"><span class="price-flower">🌸 Big Lily</span><span class="price-amt">₱50</span></div>
+        <div class="price-row"><span class="price-flower">🌻 Small Sunflower</span><span class="price-amt">₱50</span></div>
+        <div class="price-row"><span class="price-flower">🌻 Big Sunflower</span><span class="price-amt">₱65</span></div>
+        <div class="price-row"><span class="price-flower">💜 Small Lavender</span><span class="price-amt">₱25</span></div>
+        <div class="price-row"><span class="price-flower">💜 Big Lavender</span><span class="price-amt">₱40</span></div>
+        <div class="price-row"><span class="price-flower">🌼 Gerbera</span><span class="price-amt">₱45</span></div>
+      </div>
+      <div class="price-note">✨ +₱5 if with a simple wrap</div>
+      <a href="https://www.facebook.com/profile.php?id=61588443693937" target="_blank" class="price-order-btn">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#fff"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+        Order on Facebook
+      </a>
+    </div>
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lb-close" id="lbClose">✕</button>
+    <button class="lb-prev" id="lbPrev">‹</button>
+    <img id="lbImg" src="" alt="Gallery"/>
+    <button class="lb-next" id="lbNext">›</button>
+    <div class="lb-counter" id="lbCounter"></div>
+  </div>
+
+  <div class="price-modal" id="potModal">
+    <div class="price-box">
+      <button class="price-close" onclick="closePotModal()">✕</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.2rem">
+        <img src="lily.jpg" alt="Lily" style="border-radius:10px;height:120px;object-fit:cover;width:100%"/>
+        <img src="habiscus.jpg" alt="Habiscus" style="border-radius:10px;height:120px;object-fit:cover;width:100%"/>
+      </div>
+      <div class="price-title">Flower on a Pot 🪴</div>
+      <div class="price-subtitle">Handcrafted Wire Flowers in Pots</div>
+      <div class="price-list">
+        <div class="price-row"><span class="price-flower">🌸 Lily (1pc)</span><span class="price-amt">₱149</span></div>
+        <div class="price-row"><span class="price-flower">🌺 Habiscus (1pc)</span><span class="price-amt">₱149</span></div>
+      </div>
+      <div class="price-note">🪴 Perfect home decor gift handmade by Xia!</div>
+      <a href="https://www.facebook.com/profile.php?id=61588443693937" target="_blank" class="price-order-btn" style="margin-top:1rem">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#fff"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+        Order on Facebook
+      </a>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL (Login / Sign Up / Forgot Password) -->
+  <div class="price-modal" id="authModal" style="display:none;">
+    <div class="price-box" style="max-width:380px;">
+      <button class="price-close" onclick="closeAuthModal()">✕</button>
+      <div class="price-title" id="authModalTitle">Welcome to Fuzz &amp; Bloom 🌸</div>
+      <div class="price-subtitle" id="authModalSub">Log in to start ordering</div>
+      
+      <!-- Login Form -->
+      <form id="loginFormContainer" onsubmit="handleUserLogin(event)" style="display:flex;flex-direction:column;gap:1rem;margin-top:1rem;">
+        <input class="sidebar-input" type="email" id="loginEmail" placeholder="Email address" required style="width:100%;"/>
+        <input class="sidebar-input" type="password" id="loginPassword" placeholder="Password" required style="width:100%;"/>
+        <p id="loginErrorMsg" style="color:#ff9999;font-size:0.8rem;display:none;"></p>
+        <button type="submit" class="btn btn-primary" style="justify-content:center;width:100%;">Sign In</button>
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-top:.5rem;">
+          <a href="#" onclick="switchAuthView('signup')" style="color:var(--gold)">Create Account</a>
+          <a href="#" onclick="switchAuthView('forgot')" style="color:rgba(255,255,255,.6)">Forgot Password?</a>
+        </div>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signupFormContainer" onsubmit="handleUserSignup(event)" style="display:none;flex-direction:column;gap:1rem;margin-top:1rem;">
+        <input class="sidebar-input" type="email" id="signupEmail" placeholder="Email address" required style="width:100%;"/>
+        <input class="sidebar-input" type="password" id="signupPassword" placeholder="Create Password (min 6 chars)" required style="width:100%;"/>
+        <p id="signupErrorMsg" style="color:#ff9999;font-size:0.8rem;display:none;"></p>
+        <button type="submit" class="btn btn-primary" style="justify-content:center;width:100%;">Sign Up</button>
+        <div style="text-align:center;font-size:0.82rem;margin-top:.5rem;">
+          <a href="#" onclick="switchAuthView('login')" style="color:var(--gold)">Already have an account? Log In</a>
+        </div>
+      </form>
+
+      <!-- Forgot Password Form -->
+      <form id="forgotFormContainer" onsubmit="handleForgotPassword(event)" style="display:none;flex-direction:column;gap:1rem;margin-top:1rem;">
+        <input class="sidebar-input" type="email" id="forgotEmail" placeholder="Enter your account email" required style="width:100%;"/>
+        <p id="forgotErrorMsg" style="color:#ff9999;font-size:0.8rem;display:none;"></p>
+        <button type="submit" class="btn btn-primary" style="justify-content:center;width:100%;">Send Reset Link</button>
+        <div style="text-align:center;font-size:0.82rem;margin-top:.5rem;">
+          <a href="#" onclick="switchAuthView('login')" style="color:var(--gold)">Back to Login</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CART & CHECKOUT MODAL -->
+  <div class="price-modal" id="cartModal" style="display:none;">
+    <div class="price-box" style="max-width:480px;">
+      <button class="price-close" onclick="closeCartModal()">✕</button>
+      <div class="price-title">Your Shopping Cart 🛒</div>
+      <div class="price-subtitle">Review items before purchasing</div>
+      <div id="cartItemsContainer" style="max-height:220px;overflow-y:auto;margin:1rem 0;display:flex;flex-direction:column;gap:.5rem;">
+      </div>
+      <div style="display:flex;justify-content:space-between;color:#fff;font-family:var(--ff-display);font-size:1.2rem;margin:1rem 0;border-top:1px solid rgba(255,255,255,.1);padding-top:.5rem;">
+        <span>Total:</span>
+        <span id="cartTotalPrice">₱0</span>
+      </div>
+      <button onclick="purchaseCart()" class="btn btn-primary" style="width:100%;justify-content:center;">Purchase Cart 🌸</button>
+    </div>
+  </div>
+
+  <div class="admin-overlay" id="adminOverlay"></div>
+  <div class="admin-sidebar" id="adminSidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="logo.jpg" alt="Logo" class="sidebar-logo-img" onerror="this.style.display='none'"/>
+        <div>
+          <div class="sidebar-title">Admin Panel</div>
+          <div class="sidebar-subtitle">Fuzz &amp; Bloom ✦ Xia's Collections</div>
+        </div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose">✕</button>
+    </div>
+
+    <div class="sidebar-tabs" id="sidebarTabs" style="display:none">
+      <button class="sidebar-tab active" data-tab="reviews">💬 Reviews</button>
+      <button class="sidebar-tab" data-tab="gallery">🖼 Gallery</button>
+      <button class="sidebar-tab" data-tab="orders">📦 Orders</button>
+      <button class="sidebar-tab" data-tab="logs">📋 Logs</button>
+      <button class="sidebar-tab" data-tab="account">⚙️ Account</button>
+    </div>
+
+    <div class="sidebar-panel active" id="panel-login">
+      <div style="text-align:center;padding:1rem 0">
+        <div style="font-size:2.5rem;margin-bottom:.5rem">🔐</div>
+        <div style="font-family:var(--ff-display);font-size:1.3rem;color:#fff;margin-bottom:.25rem">Welcome Back</div>
+        <div style="font-size:.88rem;color:rgba(255,255,255,.4)">Sign in to manage your shop</div>
+      </div>
+      <div class="sidebar-field">
+        <label class="sidebar-label">Username</label>
+        <input class="sidebar-input" type="text" id="adminUser" placeholder="Enter username"/>
+      </div>
+      <div class="sidebar-field">
+        <label class="sidebar-label">Password</label>
+        <input class="sidebar-input" type="password" id="adminPass" placeholder="Enter password"/>
+      </div>
+      <p class="login-error" id="loginErr">❌ Incorrect credentials. Please try again.</p>
+      <button class="sidebar-btn sidebar-btn-primary" onclick="doAdminLogin()">Sign In →</button>
+    </div>
+
+    <div class="sidebar-panel" id="panel-reviews">
+      <div class="sidebar-section-title">Manage Reviews</div>
+      <div id="adminRevList">
+        <div class="admin-empty">Loading reviews…</div>
+      </div>
+    </div>
+
+    <div class="sidebar-panel" id="panel-gallery">
+      <div class="sidebar-section-title">Add Gallery Photos</div>
+      <p style="font-size:.85rem;color:rgba(255,255,255,.45);margin-bottom:.5rem">Upload photos — AI will check for appropriate content before adding them to your gallery.</p>
+      <div class="admin-upload-box" id="adminUploadBox">
+        <input type="file" id="adminPhotoInput" accept="image/*" multiple onchange="handleAdminPhotoUpload(this)"/>
+        <div class="admin-upload-label">📸 Click or drag photos here<br><span style="font-size:.75rem;opacity:.7">AI content check will run automatically</span></div>
+      </div>
+      <div class="admin-checking-msg" id="adminCheckMsg">🔍 Checking image with AI…</div>
+      <div class="admin-approved-msg" id="adminApprovedMsg">✅ Image approved! Added to gallery.</div>
+      <div class="admin-rejected-msg" id="adminRejectedMsg">🚫 Image rejected by AI moderator — inappropriate content detected.</div>
+      <div class="admin-upload-preview" id="adminUploadPreview"></div>
+      <div class="sidebar-section-title" style="margin-top:1rem">Current Gallery</div>
+      <div class="admin-gallery-grid" id="adminGalleryGrid"></div>
+    </div>
+
+    <!-- Orders Panel -->
+    <div class="sidebar-panel" id="panel-orders">
+      <div class="sidebar-section-title">Customer Orders</div>
+      <div id="adminOrdersList"><div class="admin-empty">Loading orders…</div></div>
+    </div>
+
+    <!-- System Logs Panel -->
+    <div class="sidebar-panel" id="panel-logs">
+      <div class="sidebar-section-title">Activity Logs</div>
+      <div id="adminLogsList"><div class="admin-empty">Loading logs…</div></div>
+    </div>
+
+    <div class="sidebar-panel" id="panel-account">
+      <div class="sidebar-section-title">Account</div>
+      <div style="background:rgba(217,127,184,.08);border:1px solid rgba(217,127,184,.2);border-radius:12px;padding:1.2rem;display:flex;align-items:center;gap:1rem;margin-bottom:1rem">
+        <div style="width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--c7));display:flex;align-items:center;justify-content:center;font-size:1.3rem">👑</div>
+        <div>
+          <div style="color:#fff;font-family:var(--ff-display);font-size:.95rem">hannahalexiag@gmail.com</div>
+          <div style="color:rgba(255,255,255,.4);font-size:.78rem;letter-spacing:.1em">Administrator</div>
+        </div>
+      </div>
+      <div style="font-size:.85rem;color:rgba(255,255,255,.4);padding:1rem;background:rgba(255,255,255,.04);border-radius:10px;line-height:1.6">
+        <strong style="color:rgba(255,255,255,.7)">Tips:</strong><br>
+        • Delete reviews with bad content from the Reviews tab<br>
+        • Add new gallery photos with automatic AI safety checking<br>
+        • Photos are saved in your browser's local storage
+      </div>
+      <button class="sidebar-btn sidebar-btn-ghost" onclick="adminLogout()" style="margin-top:auto">Sign Out</button>
+    </div>
+  </div>
+
+  <nav id="mainNav">
+    <div class="nav-inner">
+      <a href="#hero" class="nav-logo-wrap">
+        <img src="logo.jpg" alt="Fuzz & Bloom" class="nav-logo-img" onerror="this.style.display='none'"/>
+        <div>
+          <div class="nav-logo-text">Fuzz &amp; <span>Bloom</span></div>
+          <div class="nav-logo-sub">Xia's Collections</div>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#collection">Shop</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li id="authNavContainer">
+          <a href="#" onclick="openAuthModal('login')" id="navLoginBtn">Login / Sign Up</a>
+        </li>
+        <li>
+          <a href="#" onclick="openCartModal()" id="navCartBtn">🛒 Cart (<span id="cartCount">0</span>)</a>
+        </li>
+      </ul>
+      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#about" class="mobile-link">About</a>
+    <a href="#gallery" class="mobile-link">Gallery</a>
+    <a href="#collection" class="mobile-link">Shop</a>
+    <a href="#process" class="mobile-link">Process</a>
+    <a href="#reviews" class="mobile-link">Reviews</a>
+    <a href="#contact" class="mobile-link">Contact</a>
+  </div>
+
+  <section id="hero">
+    <div class="hero-text">
+      <span class="hero-eyebrow">✦ Handcrafted with love · Cebu, Philippines</span>
+      <h1 class="hero-title">Wire Flowers<br><em>Eternal Blooms</em></h1>
+      <p class="hero-script">by Xia ✦</p>
+      <p class="hero-desc">Where metal meets nature. Each piece is sculpted by hand — delicate wire twisted into timeless flowers that never wilt, never fade.</p>
+      <div class="hero-cta">
+        <a href="https://www.facebook.com/profile.php?id=61588443693937" target="_blank" rel="noopener" class="btn btn-facebook">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#fff"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+          Order on Facebook
+        </a>
+        <a href="#gallery" class="btn btn-secondary">View Gallery</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-blob"></div>
+      <div class="hero-logo-float">
+        <img src="logo.jpg" alt="Fuzz & Bloom" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22%3E%3Ccircle cx=%22100%22 cy=%22100%22 r=%22100%22 fill=%22%23e8b4c8%22/%3E%3Ctext x=%22100%22 y=%22115%22 text-anchor=%22middle%22 font-size=%2260%22%3E🌸%3C/text%3E%3C/svg%3E'"/>
+      </div>
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="scroll-hint"><span>Scroll</span><div class="line"></div></div>
+  </section>
+
+  <div class="marquee-strip">
+    <div class="marquee-track">
+      <span class="marquee-item">Wire Flowers <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Handcrafted Art <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Eternal Blooms <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Made with Love <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Cebu, Philippines <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Custom Orders <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Fuzz &amp; Bloom <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Wire Flowers <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Handcrafted Art <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Eternal Blooms <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Made with Love <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Cebu, Philippines <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Custom Orders <span class="marquee-dot">✦</span></span>
+      <span class="marquee-item">Fuzz &amp; Bloom <span class="marquee-dot">✦</span></span>
+    </div>
+  </div>
+
+  <section id="about">
+    <div class="container">
+      <div class="about-inner">
+        <div class="reveal-left">
+          <div class="about-img-frame">
+            <div class="about-logo-display">
+              <img src="logo.jpg" alt="Fuzz & Bloom" style="width:85%;height:85%;object-fit:contain" onerror="this.parentElement.innerHTML='<span style=font-size:5rem>🌸</span>'"/>
+            </div>
+          </div>
+          <div class="about-badge">
+            <div class="about-badge-inner"><span>✦</span><span>Est.</span><span>2019</span></div>
+          </div>
+        </div>
+        <div class="reveal-right">
+          <span class="section-label">About Xia</span>
+          <h2 class="section-title">A love story between <em>wire &amp; blooms</em></h2>
+          <p class="about-text">Hi! I'm Xia — a self-taught wire artist based in beautiful Cebu, Philippines. What started as a quiet hobby became a passion that I now share with the world through <strong>Fuzz &amp; Bloom</strong>.</p>
+          <p class="about-text">Every piece I create is hand-twisted, petal by petal, using premium copper and silver wire. I believe that beauty doesn't have to fade — these flowers will outlast any season.</p>
+          <div class="about-stats">
+            <div class="stat"><div class="stat-num">600<span>+</span></div><div class="stat-label">Pieces Sold</div></div>
+            <div class="stat"><div class="stat-num">5<span>★</span></div><div class="stat-label">Avg Rating</div></div>
+            <div class="stat"><div class="stat-num">500<span>+</span></div><div class="stat-label">Happy Orders</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="gallery">
+    <div class="container">
+      <div class="gallery-header reveal">
+        <span class="section-label">Xia's Work</span>
+        <h2 class="section-title">Real pieces, real <em>magic</em></h2>
+        <p style="font-size:1rem;font-weight:300;color:var(--earth);margin-top:.5rem">Every photo is a piece Xia made by hand — click any to see it up close 🌸</p>
+      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+  </section>
+
+  <section id="collection">
+    <div class="container">
+      <div class="collection-header reveal">
+        <span class="section-label">The Collection</span>
+        <h2 class="section-title">Flowers that <em>never fade</em></h2>
+        <p style="font-size:1rem;font-weight:300;color:var(--earth);margin-top:.5rem">Each piece is one-of-a-kind and handmade by Xia. Message us on Facebook to place your order! 💕</p>
+      </div>
+      <div class="products-grid" id="shopGrid"></div>
+      
+      <div class="products-grid" style="margin-top:2rem;grid-template-columns:repeat(2,1fr);max-width:780px;margin-left:auto;margin-right:auto" id="extraShopGrid">
+        
+        <div class="product-card reveal" style="cursor:none">
+          <div class="product-img" style="position:relative">
+            <img id="potMainImg" src="lily.jpg" alt="Flower on a Pot" loading="lazy" onerror="this.src='habiscus.jpg'"/>
+            <div class="product-overlay"><div class="product-overlay-btn" onclick="openPotModal()">See Prices</div></div>
+            
+            <div style="position:absolute;bottom:.6rem;left:.6rem;display:flex;gap:.4rem;z-index:10">
+              <div onclick="switchPotVariant('lily.jpg',this)" style="width:38px;height:38px;border-radius:6px;overflow:hidden;border:2px solid #fff;cursor:none;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:border-color .2s" title="Lily">
+                <img src="lily.jpg" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"/>
+              </div>
+              <div onclick="switchPotVariant('habiscus.jpg',this)" style="width:38px;height:38px;border-radius:6px;overflow:hidden;border:2px solid rgba(255,255,255,.4);cursor:none;box-shadow:0 2px 8px rgba(0,0,0,.25);transition:border-color .2s" title="Habiscus">
+                <img src="habiscus.jpg" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.display='none'"/>
+              </div>
+            </div>
+        
+            <div style="position:absolute;top:.6rem;right:.6rem;background:rgba(58,35,64,.75);color:#fff;font-size:.68rem;padding:.25rem .6rem;border-radius:100px;letter-spacing:.08em;backdrop-filter:blur(6px)">+1 variant</div>
+          </div>
+          <div class="product-info">
+            <div class="product-tag">Handmade ✦ Wire on Pot</div>
+            <div class="product-name">Flower on a Pot 🪴</div>
+            <div class="product-desc">Adorable wire flowers planted in a cute pot — perfect for home decor! Click to see prices.</div>
+            <div class="product-footer"><div class="product-price" style="font-size:1rem">From ₱149</div><div class="product-heart">♡</div></div>
+            <div class="order-fb-btn" style="cursor:none;background:linear-gradient(135deg,var(--rose),var(--c7))" onclick="openPotModal()">🪴 See Prices</div>
+            <button onclick="addToCart('Flower on a Pot', '₱149')" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:.5rem;font-size:.78rem;padding:.5rem;">🛒 Add to Cart</button>
+          </div>
+        </div>
+
+        <div class="product-card price-card reveal" style="transition-delay:.1s;cursor:none">
+          <div class="product-img price-card-img-wrap">
+            <img src="f7.jpg" alt="Price List" onerror="this.parentElement.style.background='linear-gradient(135deg,var(--c2),var(--c3))'"/>
+            <div class="product-overlay"><div class="product-overlay-btn">View Prices</div></div>
+          </div>
+          <div class="product-info">
+            <div class="product-tag">Official Pricing ✦ Handcrafted</div>
+            <div class="product-name">Wire Flower Prices 🌸</div>
+            <div class="price-scroll-hint" style="text-align:left;padding:0;margin-bottom:.5rem">↕ Scroll to see all prices</div>
+            <div class="price-scroll-wrap">
+              <div class="price-row-item"><span class="price-flower-name">🌹 Rose</span><span class="price-flower-amt">₱50</span></div>
+              <div class="price-row-item"><span class="price-flower-name">🌷 Tulips</span><span class="price-flower-amt">₱45</span></div>
+              <div class="price-row-item"><span class="price-flower-name">🌺 Habiscus</span><span class="price-flower-amt">₱50</span></div>
+              <div class="price-row-item"><span class="price-flower-name">🌸 Small Lily</span><span class="price-flower-amt">₱30</span></div>
+              <div class="price-row-item"><span class="price-flower-name">🌸 Big Lily</span><span class="price-flower-amt">₱50</span></div>
+              <div class="price-row-item"><span class="price-flower-name">🌻 Small Sunflower</span><span class="price-flower-amt">₱50</span></div>
+              <div class="price-row-item"><span class="price-flower-name">🌻 Big Sunflower</span><span class="price-flower-amt">₱65</span></div>
+              <div class="price-row-item"><span class="price-flower-name">💜 Small Lavender</span><span class="price-flower-amt">₱25</span></div>
+              <div class="price-row-item"><span class="price-flower-name">💜 Big Lavender</span><span class="price-flower-amt">₱40</span></div>
+              <div class="price-row-item"><span class="price-flower-name">🌼 Gerbera</span><span class="price-flower-amt">₱45</span></div>
+            </div>
+            <div class="price-wrap-note" style="margin:.6rem 0">✨ <strong>+₱5</strong> if with a simple wrap</div>
+            <a href="https://www.facebook.com/share/1E7cz4nbJe" target="_blank" rel="noopener" class="order-fb-btn">
+              <svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+              Order on Facebook
+            </a>
+          </div>
+        </div>
+
+      </div>
+      <div style="text-align:center;margin-top:3rem" class="reveal">
+        <a href="https://www.facebook.com/profile.php?id=61588443693937" target="_blank" rel="noopener" class="btn btn-facebook">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#fff"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+          See All Designs on Facebook
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="container">
+      <div class="process-header reveal">
+        <span class="section-label">The Craft</span>
+        <h2 class="section-title">From spool to <em>bloom</em></h2>
+        <p style="font-size:1rem;font-weight:300;color:var(--earth)">Every piece goes through a meditative four-step ritual before it reaches your hands.</p>
+      </div>
+      <div class="process-steps">
+        <div class="step-card step-1 reveal" style="transition-delay:0s"><div class="step-num">01</div><div class="step-title">Design &amp; Sketch</div><div class="step-desc">Each flower begins as a pencil sketch inspired by Xia's morning garden walks.</div></div>
+        <div class="step-card step-2 reveal" style="transition-delay:.15s"><div class="step-num">02</div><div class="step-title">Wire Selection</div><div class="step-desc">Premium copper, silver or gold-filled wire is chosen for its gauge and character.</div></div>
+        <div class="step-card step-3 reveal" style="transition-delay:.3s"><div class="step-num">03</div><div class="step-title">Hand Sculpting</div><div class="step-desc">Petal by petal, each form is twisted and shaped with jeweller's pliers over 2–6 hours.</div></div>
+        <div class="step-card step-4 reveal" style="transition-delay:.45s"><div class="step-num">04</div><div class="step-title">Finish &amp; Pack</div><div class="step-desc">A final treatment seals the metal. Pieces are nestled in kraft boxes with a handwritten note.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="reviews">
+    <div class="rev-bg"></div>
+    <div class="container">
+      <div class="rev-header reveal">
+        <span class="section-label">Kind Words</span>
+        <h2 class="section-title">What customers <em style="background:linear-gradient(135deg,var(--gold),#f0c040);-webkit-background-clip:text;-webkit-text-fill-color:transparent">say</em></h2>
+        <p style="font-size:.95rem;color:rgba(255,255,255,.5);margin-top:.4rem">Be kind — reviews with inappropriate language are automatically censored 🌼</p>
+      </div>
+      <div class="reviews-grid" id="reviewsGrid">
+        <div class="rev-empty" id="revEmpty">Loading reviews…</div>
+      </div>
+      <div class="rev-form-wrap reveal">
+        <div class="rev-form-title">✍️ Leave a Review</div>
+        <form class="rev-form" id="revForm" onsubmit="submitReview(event)">
+          <div class="rev-form-row">
+            <div class="form-group"><label class="rev-label">Your Name</label><input class="rev-input" id="revName" type="text" placeholder="e.g. Maria S." required maxlength="40"/></div>
+            <div class="form-group">
+              <label class="rev-label">Rating</label>
+              <div class="star-select" id="starSelect">
+                <span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="rev-label">Your Review</label>
+            <textarea class="rev-textarea" id="revText" placeholder="Share your experience with Fuzz &amp; Bloom! Keep it kind and family-friendly 🌸" required maxlength="500"></textarea>
+            <p class="rev-error" id="revError"></p>
+          </div>
+          
+          <div class="form-group">
+            <label class="rev-label">Add a Photo (optional)</label>
+            <div class="photo-upload-area">
+              <input type="file" id="revPhotoInput" accept="image/*" onchange="handleRevPhoto(this)"/>
+              <div class="photo-upload-label">📷 Click to attach a photo</div>
+              <img id="revPhotoPreview" class="photo-preview" src="" alt="Preview"/>
+              <div class="photo-checking" id="revPhotoChecking">🔍 Checking image with AI…</div>
+            </div>
+            <div class="rev-error" id="revPhotoError" style="display:none"></div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="cursor:none;width:100%;justify-content:center">Submit Review 🌼</button>
+          <p class="rev-notice">⚠️ Bad words are automatically censored. Hate speech, slurs, and inappropriate images are blocked.</p>
+        </form>
+        <div id="revSuccess" style="display:none;text-align:center;padding:2rem;font-family:var(--ff-script);font-size:1.6rem;color:var(--gold)">Thank you for your kind words! 🌼</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="container">
+      <div class="contact-inner">
+        <div class="reveal-left">
+          <span class="section-label">Let's Create Together</span>
+          <h2 class="section-title">Commission a <em>custom bloom</em></h2>
+          <p style="font-size:1.05rem;font-weight:300;color:var(--earth);margin-bottom:2.5rem">Have a vision? Message Xia directly on Facebook — she'll get back to you within 24 hours! 🌼</p>
+          <div class="contact-detail">
+            <div class="contact-icon">✉️</div>
+            <div><div class="contact-text-label">Email</div><div class="contact-text-val"><a href="mailto:hannahalexiag@gmail.com">hannahalexiag@gmail.com</a></div></div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-icon">📍</div>
+            <div><div class="contact-text-label">Location</div><div class="contact-text-val">Cebu City, Philippines 🇵🇭</div></div>
+          </div>
+          <div class="contact-detail">
+            <div class="contact-icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#1877F2"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg></div>
+            <div><div class="contact-text-label">Facebook</div><div class="contact-text-val"><a href="https://www.facebook.com/profile.php?id=61588443693937" target="_blank" style="color:var(--rose)">Fuzz &amp; Bloom</a></div></div>
+          </div>
+          <div style="margin-top:2rem">
+            <a href="https://www.facebook.com/profile.php?id=61588443693937" target="_blank" class="btn btn-facebook">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#fff"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+              Chat on Facebook
+            </a>
+          </div>
+        </div>
+        <div class="reveal-right">
+          <form class="contact-form" id="contactForm" onsubmit="handleContact(event)">
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">First Name</label><input class="form-input" type="text" placeholder="Xia" required/></div>
+              <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" type="text" placeholder="Bloom" required/></div>
+            </div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" placeholder="you@example.com" required/></div>
+            <div class="form-group"><label class="form-label">Favourite Flower</label><input class="form-input" type="text" placeholder="e.g. Peony, Dahlia…"/></div>
+            <div class="form-group"><label class="form-label">Your Vision</label><textarea class="form-textarea" placeholder="Describe your dream piece — occasion, colours, size…" required></textarea></div>
+            <button type="submit" class="btn btn-primary" style="cursor:none;width:100%;justify-content:center">Send Message 🌼</button>
+            <div id="contactSuccess" style="display:none;text-align:center;padding:1rem;background:rgba(143,173,143,.15);border-radius:10px;color:var(--sage);font-family:var(--ff-script);font-size:1.3rem">Thank you! Xia will reply via email soon 🌿</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand">
+            <img src="logo.jpg" alt="Fuzz & Bloom" class="footer-logo-img" onerror="this.style.display='none'"/>
+            <div class="footer-logo-text">Fuzz &amp; <span>Bloom</span></div>
+          </div>
+          <p class="footer-tagline">Handcrafted wire flowers made with patience and love — by Xia, from Cebu City, Philippines 🇵🇭</p>
+          <div class="social-row">
+            <a href="https://www.facebook.com/profile.php?id=61588443693937" target="_blank" class="social-btn fb">
+              <svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.406 18.627 0 12 0S0 5.406 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.026 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.49 0-1.956.93-1.956 1.887v2.267h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg>
+            </a>
+            <a href="mailto:hannahalexiag@gmail.com" class="social-btn">✉</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Navigate</div>
+          <ul class="footer-links">
+            <li><a href="#about">About Xia</a></li><li><a href="#gallery">Gallery</a></li>
+            <li><a href="#collection">Shop</a></li><li><a href="#process">The Craft</a></li>
+            <li><a href="#reviews">Reviews</a></li><li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-col-title">Shop</div>
+          <ul class="footer-links">
+            <li><a href="#collection">Wire Roses</a></li><li><a href="#collection">Habiscus</a></li>
+            <li><a href="#collection">Bouquets</a></li><li><a href="#collection">Wreaths</a></li>
+            <li><a href="#collection">Brooches</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2024 Fuzz &amp; Bloom by Xia · Cebu, Philippines 🇵🇭</span>
+        <span style="font-family:var(--ff-script);font-size:1rem;color:var(--gold)">made with love 🌼</span>
+        <button class="admin-link" id="adminTrigger">⚙</button>
+      </div>
+    </div>
+  </footer>
+
+  <button class="chat-fab" id="chatFab" aria-label="Chat with us">
+    <div class="chat-badge">1</div>
+    <img src="logo.jpg" alt="Chat" class="chat-fab-logo" onerror="this.parentElement.innerHTML='<span style=font-size:1.5rem>💬</span>'"/>
+  </button>
+  <div class="chat-window" id="chatWindow">
+    <div class="chat-head">
+      <div class="chat-avatar"><img src="logo.jpg" alt="Bot" onerror="this.parentElement.innerHTML='🌸'"/></div>
+      <div class="chat-head-info">
+        <div class="chat-head-name">Fuzz &amp; Bloom Bot 🌼</div>
+        <div class="chat-head-status"><span class="online-dot"></span> Usually replies instantly</div>
+      </div>
+      <button class="chat-close-btn" id="chatClose">✕</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-quick">
+      <button class="quick-btn" onclick="askQuick('How do I order?')">🛒 How to order?</button>
+      <button class="quick-btn" onclick="askQuick('What are your prices?')">💰 Prices?</button>
+      <button class="quick-btn" onclick="askQuick('Do you ship?')">📦 Do you ship?</button>
+      <button class="quick-btn" onclick="askQuick('How long does it take?')">⏱ Wait time?</button>
+      <button class="quick-btn" onclick="askQuick('Can I customize?')">🎨 Custom order?</button>
+      <button class="quick-btn" onclick="askQuick('What materials do you use?')">🔩 Materials?</button>
+    </div>
+    <div class="chat-input-area">
+      <input class="chat-input" id="chatInput" type="text" placeholder="Type a message…" maxlength="200"/>
+      <button class="chat-send" id="chatSend">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="fb-addon.js"></script>
+</body>
+</html>
