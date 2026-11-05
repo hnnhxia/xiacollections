@@ -239,8 +239,8 @@ function handleContact(e){
   e.target.querySelectorAll('input,textarea,button').forEach(el=>el.disabled=true);
 }
 
-const SUPA_URL='https://nwkrodevhvoxsaxejuku.supabase.co';
-const SUPA_KEY='sb_publishable_SDBB23ZA7p5Uh_aUBhhpbA_sBbxETKo';
+const SUPA_URL = 'https://pjcfervptwugvpgcghve.supabase.co';
+const SUPA_KEY = 'sb_publishable__VfyC_7ZMHxhPdTIK10YOg_yh5imRk_';
 
 const SEED_REVIEWS=[
   {name:'Maria S',text:'Solid Kaayo bai!! ',stars:5,date:'Jan 15, 2026',photo:null},
@@ -265,66 +265,50 @@ async function sbFetch(path, opts={}){
   return res;
 }
 
-async function getRevs(){
-  try{
-    const res=await sbFetch('/rest/v1/reviews?order=created_at.asc&select=*');
-    if(!res.ok)return[];
+async function getRevs() {
+  try {
+    const res = await sbFetch('/rest/v1/reviews?order=created_at.desc&select=*');
+    if (!res.ok) {
+      console.error('Failed to fetch reviews:', await res.text());
+      return [];
+    }
     return await res.json();
-  }catch{return[]}
-}
-
-async function insertRev(rev){
-  await sbFetch('/rest/v1/reviews',{
-    method:'POST',
-    prefer:'return=minimal',
-    body:JSON.stringify(rev)
-  });
-}
-
-async function deleteRev(id){
-  await fetch(SUPA_URL+'/rest/v1/reviews?id=eq.'+id,{
-    method:'DELETE',
-    headers:{
-      'apikey':SUPA_KEY,
-      'Authorization':'Bearer '+SUPA_KEY,
-      'Content-Type':'application/json',
-      'Prefer':'return=minimal'
-    }
-  });
-}
-
-async function maybeSeed(){
-  const revs=await getRevs();
-  if(revs.length===0){
-    for(const r of SEED_REVIEWS){
-      await insertRev(r);
-    }
+  } catch (e) {
+    console.error('Network error fetching reviews:', e);
+    return [];
   }
 }
-maybeSeed().then(()=>renderReviews());
 
-async function renderReviews(){
-  const grid=document.getElementById('reviewsGrid');
-  const empty=document.getElementById('revEmpty');
-  if(!grid || !empty) return;
+async function renderReviews() {
+  const grid = document.getElementById('reviewsGrid');
+  const empty = document.getElementById('revEmpty');
+  if (!grid || !empty) return;
   
-  grid.querySelectorAll('.rev-card').forEach(c=>c.remove());
-  empty.textContent='Loading reviews…';
-  empty.style.display='block';
+  // Clear any existing cards to prevent duplication
+  grid.querySelectorAll('.rev-card').forEach(c => c.remove());
+  
+  const revs = await getRevs();
+  
+  if (!revs || revs.length === 0) {
+    empty.textContent = 'No reviews yet — be the first! 🌸';
+    empty.style.display = 'block';
+    return;
+  }
+  
+  empty.style.display = 'none';
 
-  const revs=await getRevs();
-  grid.querySelectorAll('.rev-card').forEach(c=>c.remove());
-  if(!revs.length){empty.textContent='No reviews yet — be the first! 🌸';return}
-  empty.style.display='none';
-
-  revs.slice().reverse().forEach(r=>{
-    const c=document.createElement('div');
-    c.className='rev-card';
-    const avatarInner=r.photo
-      ?`<img src="${esc(r.photo)}" alt="${esc((r.name||'?')[0])}"/>`
-      :`${esc((r.name||'?')[0])}`;
-    const photoHtml=r.photo?`<img src="${esc(r.photo)}" alt="Review photo" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem"/>`:'' ;
-    c.innerHTML=`
+  // Render reviews (limit to latest 50 if you have too many, to keep it fast)
+  revs.slice(0, 50).forEach(r => {
+    const c = document.createElement('div');
+    c.className = 'rev-card';
+    const avatarInner = r.photo
+      ? `<img src="${esc(r.photo)}" alt="${esc((r.name || '?')[0])}"/>`
+      : `${esc((r.name || '?')[0])}`;
+    const photoHtml = r.photo 
+      ? `<img src="${esc(r.photo)}" alt="Review photo" style="width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-bottom:.5rem"/>` 
+      : '';
+      
+    c.innerHTML = `
       <div class="rev-quote">"</div>
       ${photoHtml}
       <p class="rev-text">${esc(r.text)}</p>
@@ -332,8 +316,8 @@ async function renderReviews(){
         <div class="rev-avatar">${avatarInner}</div>
         <div>
           <div class="rev-name">${esc(r.name)}</div>
-          <div class="rev-stars">${'★'.repeat(r.stars)+'☆'.repeat(5-r.stars)}</div>
-          <div class="rev-date">${r.date||''}</div>
+          <div class="rev-stars">${'★'.repeat(r.stars || 5) + '☆'.repeat(5 - (r.stars || 5))}</div>
+          <div class="rev-date">${esc(r.date || '')}</div>
         </div>
       </div>`;
     grid.appendChild(c);
@@ -479,27 +463,61 @@ document.querySelectorAll('.sidebar-tab').forEach(t=>{
 const adminPass = document.getElementById('adminPass');
 if(adminPass) adminPass.addEventListener('keydown',e=>{if(e.key==='Enter')doAdminLogin()});
 
-function doAdminLogin(){
+async function doAdminLogin() {
   const uEl = document.getElementById('adminUser');
   const pEl = document.getElementById('adminPass');
   const errEl = document.getElementById('loginErr');
   const tabsEl = document.getElementById('sidebarTabs');
   if(!uEl || !pEl) return;
-  
-  const u=uEl.value;
-  const p=pEl.value;
-  if(u===AU&&p===AP){
-    adminLoggedIn=true;
-    if(tabsEl) tabsEl.style.display='flex';
+
+  const email = uEl.value.trim();
+  const password = pEl.value.trim();
+
+  // 1. Authenticate with Supabase Auth
+  const res = await fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    if(errEl) {
+      errEl.textContent = '❌ Incorrect credentials.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
+
+  // 2. Check if this user is marked as an admin in your profiles table
+  const token = data.access_token;
+  const userId = data.user.id;
+
+  const profileRes = await fetch(SUPA_URL + `/rest/v1/profiles?id=eq.${userId}&select=is_admin`, {
+    headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token }
+  });
+
+  const profiles = await profileRes.json();
+  const userProfile = profiles[0];
+
+  // 3. Block regular customers, let admins through
+  if (userProfile && userProfile.is_admin === true) {
+    adminLoggedIn = true;
+    if(tabsEl) tabsEl.style.display = 'flex';
     showSidebarPanel('reviews');
     renderAdminRevs();
-    if(errEl) errEl.style.display='none';
-    showToast('Welcome back, Xia! 👑','success');
-  }else{
-    if(errEl) errEl.style.display='block';
+    if(errEl) errEl.style.display = 'none';
+    showToast('Welcome back, Admin! 👑', 'success');
+  } else {
+    if(errEl) {
+      errEl.textContent = '❌ Access denied. Admins only!';
+      errEl.style.display = 'block';
+    }
+    // Sign them out of the admin session immediately
+    adminLoggedIn = false;
   }
 }
-
 function adminLogout(){
   adminLoggedIn=false;
   const tabsEl = document.getElementById('sidebarTabs');
@@ -512,6 +530,240 @@ function adminLogout(){
   closeAdminSidebar();
   showToast('Logged out successfully.','info');
 }
+
+async function adminDelRev(reviewId) {
+  // Direct delete request bypassing strict local token parsing
+  const res = await sbFetch(`/rest/v1/reviews?id=eq.${reviewId}`, {
+    method: 'DELETE',
+    headers: { 
+      'Prefer': 'return=representation'
+    }
+  });
+
+  if (res.ok) {
+    showToast('Review deleted successfully! 🗑️', 'success');
+    renderAdminRevs();
+    renderReviews();
+  } else {
+    const err = await res.json().catch(() => ({}));
+    console.error('Delete review error details:', err);
+    showToast('Failed to delete review.', 'error');
+  }
+}
+ 
+/* ==========================================
+   UNIFIED SHOPPING CART & MODAL SYSTEM
+   ========================================== */
+let cart = JSON.parse(localStorage.getItem('fb_cart')) || [];
+
+function saveCart() {
+  localStorage.setItem('fb_cart', JSON.stringify(cart));
+  renderCartUI();
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const countEl = document.getElementById('cartCount');
+  if (countEl) {
+    countEl.textContent = cart.reduce((acc, item) => acc + (Number(item.qty) || 1), 0);
+  }
+}
+
+// Matches your product card buttons: addToCart(name, price)
+async function addToCart(name, price) {
+  const token = localStorage.getItem('sb_user_token');
+  if (!token) {
+    showToast('Please log in to add items to your cart! 🌸', 'error');
+    if (typeof openAuthModal === 'function') openAuthModal('login');
+    return;
+  }
+
+  const numericPrice = typeof price === 'string' ? parseFloat(price.replace(/[^\d.]/g, '')) : Number(price || 0);
+  const itemId = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+  // 1. Update local storage cart array immediately for instant UI feedback
+  let currentCart = JSON.parse(localStorage.getItem('fb_cart')) || [];
+  const existing = currentCart.find(i => i.id === itemId || i.name === name);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    currentCart.push({
+      id: itemId,
+      name: name,
+      price: numericPrice,
+      qty: 1
+    });
+  }
+  localStorage.setItem('fb_cart', JSON.stringify(currentCart));
+  if (typeof cart !== 'undefined') cart = currentCart;
+  if (typeof renderCartUI === 'function') renderCartUI();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
+
+  showToast(`Added ${name} to cart! 🛒`, 'success');
+
+  // 2. Sync to Supabase in the background
+  try {
+    let userId = null;
+    const userRes = await fetch(SUPA_URL + '/auth/v1/user', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    if (userRes.ok) {
+      const userData = await userRes.json();
+      userId = userData.id;
+    }
+
+    await sbFetch('/rest/v1/cart_items', {
+      method: 'POST',
+      headers: { 
+        'Prefer': 'return=representation',
+        'Authorization': 'Bearer ' + token 
+      },
+      body: JSON.stringify({ 
+        user_id: userId, 
+        product_name: name, 
+        price: numericPrice, 
+        quantity: 1 
+      })
+    });
+    await logSystemAction('ADD_TO_CART', `User added ${name} (₱${numericPrice}) to cart`);
+  } catch (e) {
+    console.error('Supabase background sync note:', e);
+  }
+}
+
+function increaseQty(id) {
+  const item = cart.find(i => i.id === id);
+  if (item) {
+    item.qty += 1;
+    saveCart();
+  }
+}
+
+function decreaseQty(id) {
+  const item = cart.find(i => i.id === id);
+  if (item) {
+    item.qty -= 1;
+    if (item.qty <= 0) {
+      removeFromCart(id);
+      return;
+    }
+    saveCart();
+  }
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  saveCart();
+  showToast('Item removed from cart 🗑️', 'info');
+}
+
+function openCartModal() {
+  const token = localStorage.getItem('sb_user_token') || localStorage.getItem('sb-pjcfervptwugvpgcghve-auth-token');
+  if (!token) {
+    showToast('Please log in to view your cart.', 'error');
+    if (typeof openAuthModal === 'function') {
+      openAuthModal('login');
+    }
+    return;
+  }
+
+  const modal = document.getElementById('cartModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+
+  const container = document.getElementById('cartItemsContainer');
+  const totalEl = document.getElementById('cartTotalPrice');
+  if (!container) return;
+
+  const currentCart = JSON.parse(localStorage.getItem('fb_cart')) || [];
+
+  if (currentCart.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding: 20px; color: #b8a9c9; font-size: 0.95rem;">Your cart is empty! 🌸</div>`;
+    if (totalEl) totalEl.textContent = '₱0';
+    return;
+  }
+
+  let total = 0;
+  container.innerHTML = '';
+
+  currentCart.forEach((item, index) => {
+    const itemName = item.name || item.product_name || 'Bouquet Item';
+    const itemPrice = Number(item.price || 0);
+    const itemQty = Number(item.qty || item.quantity || 1);
+    const itemId = item.id || index;
+
+    total += itemPrice * itemQty;
+
+    const div = document.createElement('div');
+    div.className = 'cart-item-row'; // Uses our new CSS class!
+    
+    div.innerHTML = `
+      <div class="cart-item-info">
+        <div class="cart-item-name">${typeof esc === 'function' ? esc(itemName) : itemName}</div>
+        <div class="cart-item-price">₱${itemPrice.toFixed(2)}</div>
+      </div>
+      <div class="cart-qty-controls">
+        <button class="cart-qty-btn" onclick="decreaseQty('${itemId}')">-</button>
+        <span class="cart-qty-num">${itemQty}</span>
+        <button class="cart-qty-btn" onclick="increaseQty('${itemId}')">+</button>
+      </div>
+      <button class="cart-del-btn" onclick="removeFromCart('${itemId}')" title="Remove">🗑️</button>
+    `;
+    container.appendChild(div);
+  });
+
+  if (totalEl) {
+    totalEl.textContent = `₱${total.toFixed(2)}`;
+  }
+}
+
+async function purchaseCart() {
+  if (cart.length === 0) {
+    showToast('Your cart is empty! ₱0', 'error');
+    return;
+  }
+
+  const token = localStorage.getItem('sb_user_token');
+  if (!token) {
+    showToast('Please log in to complete your purchase.', 'error');
+    if (typeof openAuthModal === 'function') openAuthModal('login');
+    return;
+  }
+
+  const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+  const email = localStorage.getItem('sb_user_email') || 'customer@gmail.com';
+
+  const res = await sbFetch('/rest/v1/orders', {
+    method: 'POST',
+    headers: { 
+      'Prefer': 'return=representation',
+      'Authorization': 'Bearer ' + token 
+    },
+    body: JSON.stringify({
+      customer_email: email,
+      items: cart,
+      total_amount: total,
+      status: 'Pending'
+    })
+  });
+
+  if (res.ok) {
+    cart = [];
+    saveCart();
+    closeCartModal();
+    showToast('Order placed successfully! Waiting for admin approval. 🌸', 'success');
+    await logSystemAction('PURCHASE_CART', `Order placed by ${email} totaling ₱${total}`);
+  } else {
+    const errData = await res.json().catch(() => ({}));
+    console.error('Checkout error response:', errData);
+    showToast('Checkout failed. Please try again.', 'error');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderCartUI();
+});
 
 async function renderAdminRevs(){
   const list=document.getElementById('adminRevList');
@@ -531,13 +783,6 @@ async function renderAdminRevs(){
       <div class="admin-rev-text">${esc(r.text)}</div>`;
     list.appendChild(item);
   });
-}
-
-async function adminDelRev(id){
-  await deleteRev(id);
-  await renderReviews();
-  await renderAdminRevs();
-  showToast('Review deleted.','info');
 }
 
 async function renderAdminGallery(){
@@ -632,6 +877,7 @@ async function handleUserSignup(e) {
   const errEl = document.getElementById('signupErrorMsg');
   errEl.style.display = 'none';
 
+  // 1. Register user via Supabase Auth
   const res = await fetch(SUPA_URL + '/auth/v1/signup', {
     method: 'POST',
     headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
@@ -644,9 +890,20 @@ async function handleUserSignup(e) {
     errEl.style.display = 'block';
     return;
   }
+
+  // 2. Automatically save user profile into your public.profiles database table
+  if (data.id || data.user?.id) {
+    const userId = data.id || data.user.id;
+    await sbFetch('/rest/v1/profiles', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=minimal', 'Authorization': 'Bearer ' + (data.access_token || SUPA_KEY) },
+      body: JSON.stringify({ id: userId, email: email })
+    }).catch(() => {});
+  }
   
-  await logSystemAction('USER_SIGNUP', `New user registered: ${email}`);
-  showToast('Account created! Please log in.', 'success');
+  // 3. Log action, show success toast, and switch views
+  await logSystemAction('USER_SIGNUP', `New user registered and saved to database: ${email}`);
+  showToast('Account created successfully! 🎉', 'success');
   switchAuthView('login');
 }
 
@@ -724,7 +981,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadUserCart();
 });
 
-
 /* ==========================================
    SHOPPING CART & SHOPEE-TYPE ORDER FLOW
    ========================================== */
@@ -738,19 +994,45 @@ async function addToCart(name, price) {
     return;
   }
 
-  const numericPrice = parseFloat(price.replace(/[^\d.]/g, ''));
+  // Find the exact item from shopData matching the name clicked
+  const product = shopData.find(p => p.name.trim() === name.trim());
+  const exactName = product ? product.name : name;
+  const rawPrice = product ? product.price : price;
+
+  const numericPrice = typeof rawPrice === 'string' ? parseFloat(rawPrice.replace(/[^\d.]/g, '')) : Number(rawPrice || 0);
+
+  let userId = null;
+  try {
+    const userRes = await fetch(SUPA_URL + '/auth/v1/user', {
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    if (userRes.ok) {
+      const userData = await userRes.json();
+      userId = userData.id;
+    }
+  } catch (e) {}
 
   const res = await sbFetch('/rest/v1/cart_items', {
     method: 'POST',
-    headers: { 'Prefer': 'return=representation' },
-    body: JSON.stringify({ product_name: name, price: numericPrice, quantity: 1 })
+    headers: { 
+      'Prefer': 'return=representation',
+      'Authorization': 'Bearer ' + token 
+    },
+    body: JSON.stringify({ 
+      user_id: userId, 
+      product_name: exactName, 
+      price: numericPrice, 
+      quantity: 1 
+    })
   });
 
   if (res.ok) {
-    showToast(`Added ${name} to cart! 🛒`, 'success');
+    showToast(`Added ${exactName} to cart! 🛒`, 'success');
     loadUserCart();
-    await logSystemAction('ADD_TO_CART', `User added ${name} (₱${numericPrice}) to cart`);
+    await logSystemAction('ADD_TO_CART', `User added ${exactName} (₱${numericPrice}) to cart`);
   } else {
+    const errData = await res.json().catch(() => ({}));
+    console.error('Cart insert error:', errData);
     showToast('Failed to add to cart.', 'error');
   }
 }
@@ -759,7 +1041,11 @@ async function loadUserCart() {
   const token = localStorage.getItem('sb_user_token');
   if (!token) return;
 
-  const res = await sbFetch('/rest/v1/cart_items?select=*', { method: 'GET' });
+  const res = await sbFetch('/rest/v1/cart_items?select=*', { 
+    method: 'GET',
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+  
   if (res.ok) {
     localCart = await res.json();
     const countEl = document.getElementById('cartCount');
@@ -767,38 +1053,121 @@ async function loadUserCart() {
   }
 }
 
-function openCartModal() {
+async function increaseCartQty(productName) {
   const token = localStorage.getItem('sb_user_token');
+  if (!token) return;
+  
+  // Find the item in localCart by product name
+  const item = localCart.find(i => i.product_name === productName);
+  if (!item) return;
+
+  const newQty = item.quantity + 1;
+  const res = await sbFetch(`/rest/v1/cart_items?id=eq.${item.id}`, {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token, 'Prefer': 'return=representation' },
+    body: JSON.stringify({ quantity: newQty })
+  });
+
+  if (res.ok) {
+    await loadUserCart();
+    openCartModal();
+  } else {
+    showToast('Failed to update quantity.', 'error');
+  }
+}
+
+async function decreaseCartQty(productName) {
+  const token = localStorage.getItem('sb_user_token');
+  if (!token) return;
+  
+  const item = localCart.find(i => i.product_name === productName);
+  if (!item) return;
+
+  if (item.quantity <= 1) {
+    removeCartItem(productName);
+    return;
+  }
+
+  const newQty = item.quantity - 1;
+  const res = await sbFetch(`/rest/v1/cart_items?id=eq.${item.id}`, {
+    method: 'PATCH',
+    headers: { 'Authorization': 'Bearer ' + token, 'Prefer': 'return=representation' },
+    body: JSON.stringify({ quantity: newQty })
+  });
+
+  if (res.ok) {
+    await loadUserCart();
+    openCartModal();
+  } else {
+    showToast('Failed to update quantity.', 'error');
+  }
+}
+
+async function removeCartItem(productName) {
+  const token = localStorage.getItem('sb_user_token');
+  if (!token) return;
+
+  const res = await sbFetch(`/rest/v1/cart_items?product_name=eq.${encodeURIComponent(productName)}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + token }
+  });
+
+  if (res.ok) {
+    showToast('Item removed from cart 🗑️', 'info');
+    await loadUserCart();
+    openCartModal();
+  } else {
+    showToast('Failed to remove item.', 'error');
+  }
+}
+
+function openCartModal() {
+  const token = localStorage.getItem('sb_user_token') || localStorage.getItem('sb-pjcfervptwugvpgcghve-auth-token');
   if (!token) {
     showToast('Please log in to view your cart.', 'error');
-    openAuthModal('login');
+    if (typeof openAuthModal === 'function') {
+      openAuthModal('login');
+    }
     return;
   }
 
   const container = document.getElementById('cartItemsContainer');
+  const totalEl = document.getElementById('cartTotalPrice');
   if(!container) return;
   container.innerHTML = '';
   
-  if (localCart.length === 0) {
+  if (!localCart || localCart.length === 0) {
     container.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.5);padding:1rem;">Your cart is empty. 🌸</div>';
-    document.getElementById('cartTotalPrice').textContent = '₱0';
+    if(totalEl) totalEl.textContent = '₱0';
     document.getElementById('cartModal').style.display = 'flex';
     return;
   }
 
+  // Keep items steady and sorted alphabetically so they never jump around
+  localCart.sort((a, b) => a.product_name.localeCompare(b.product_name));
+
   let total = 0;
   localCart.forEach(item => {
-    total += item.price * item.quantity;
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
     const row = document.createElement('div');
-    row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.05);padding:.5rem .8rem;border-radius:8px;';
+    row.className = 'cart-item-row';
     row.innerHTML = `
-      <span style="color:#fff;font-size:.9rem;">${item.product_name} (x${item.quantity})</span>
-      <span style="color:var(--gold);font-family:var(--ff-display);">₱${item.price * item.quantity}</span>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${esc(item.product_name)}</div>
+        <div class="cart-item-price">₱${item.price.toFixed(2)}</div>
+      </div>
+      <div class="cart-qty-controls">
+        <button class="cart-qty-btn" onclick="decreaseCartQty('${item.product_name}')">-</button>
+        <span class="cart-qty-num">${item.quantity}</span>
+        <button class="cart-qty-btn" onclick="increaseCartQty('${item.product_name}')">+</button>
+      </div>
+      <button class="cart-del-btn" onclick="removeCartItem('${item.product_name}')" title="Remove">🗑️</button>
     `;
     container.appendChild(row);
   });
 
-  document.getElementById('cartTotalPrice').textContent = '₱' + total;
+  if(totalEl) totalEl.textContent = '₱' + total.toFixed(2);
   document.getElementById('cartModal').style.display = 'flex';
 }
 
@@ -807,14 +1176,27 @@ function closeCartModal() {
 }
 
 async function purchaseCart() {
-  if (localCart.length === 0) return;
+  if (localCart.length === 0) {
+    showToast('Your cart is empty! 🌸', 'error');
+    return;
+  }
+
+  const token = localStorage.getItem('sb_user_token');
+  if (!token) {
+    showToast('Please log in to complete your purchase.', 'error');
+    openAuthModal('login');
+    return;
+  }
 
   const total = localCart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const email = localStorage.getItem('sb_user_email') || 'customer@gmail.com';
 
   const res = await sbFetch('/rest/v1/orders', {
     method: 'POST',
-    headers: { 'Prefer': 'return=representation' },
+    headers: { 
+      'Prefer': 'return=representation',
+      'Authorization': 'Bearer ' + token 
+    },
     body: JSON.stringify({
       customer_email: email,
       items: localCart,
@@ -824,13 +1206,21 @@ async function purchaseCart() {
   });
 
   if (res.ok) {
-    await sbFetch('/rest/v1/cart_items?id=not.is.null', { method: 'DELETE' });
+    await sbFetch('/rest/v1/cart_items?id=not.is.null', { 
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    
     localCart = [];
-    document.getElementById('cartCount').textContent = '0';
+    const countEl = document.getElementById('cartCount');
+    if(countEl) countEl.textContent = '0';
+    
     closeCartModal();
     showToast('Order placed successfully! Waiting for admin approval. 🌸', 'success');
     await logSystemAction('PURCHASE_CART', `Order placed by ${email} totaling ₱${total}`);
   } else {
+    const errData = await res.json().catch(() => ({}));
+    console.error('Checkout error response:', errData);
     showToast('Checkout failed. Please try again.', 'error');
   }
 }
@@ -845,25 +1235,31 @@ async function renderAdminOrders() {
   list.innerHTML = '<div class="admin-empty">Loading orders…</div>';
 
   const res = await sbFetch('/rest/v1/orders?order=created_at.desc&select=*', { method: 'GET' });
-  if (!res.ok) { list.innerHTML = '<div class="admin-empty">Failed to load orders.</div>'; return; }
+  if (!res.ok) { 
+    list.innerHTML = '<div class="admin-empty">Failed to load orders. Check RLS policies.</div>'; 
+    return; 
+  }
   
   const orders = await res.json();
   list.innerHTML = '';
   
-  if (orders.length === 0) { list.innerHTML = '<div class="admin-empty">No pending orders. 🌸</div>'; return; }
+  if (!orders || orders.length === 0) { 
+    list.innerHTML = '<div class="admin-empty">No orders found yet. 🌸</div>'; 
+    return; 
+  }
 
   orders.forEach(ord => {
     const item = document.createElement('div');
     item.className = 'admin-rev-item';
-    const itemsList = ord.items.map(i => `${i.product_name} (x${i.quantity})`).join(', ');
+    const itemsList = Array.isArray(ord.items) ? ord.items.map(i => `${i.product_name} (x${i.quantity})`).join(', ') : 'Custom Order';
     
     item.innerHTML = `
-      <div class="admin-rev-meta">${ord.customer_email} <span>Status: <strong>${ord.status}</strong></span></div>
-      <div class="admin-rev-text">Items: ${itemsList}<br>Total: <strong>₱${ord.total_amount}</strong></div>
+      <div class="admin-rev-meta">${esc(ord.customer_email)} <span>Status: <strong>${esc(ord.status)}</strong></span></div>
+      <div class="admin-rev-text">Items: ${esc(itemsList)}<br>Total: <strong>₱${ord.total_amount}</strong></div>
       ${ord.status === 'Pending' ? `
         <div style="display:flex;gap:.5rem;margin-top:.8rem;">
-          <button class="sidebar-btn sidebar-btn-primary" style="padding:.4rem 1rem;font-size:.75rem;" onclick="updateOrderStatus(${ord.id}, 'Accepted', '${ord.customer_email}', '${itemsList}')">Accept ✔</button>
-          <button class="sidebar-btn sidebar-btn-danger" style="padding:.4rem 1rem;font-size:.75rem;" onclick="updateOrderStatus(${ord.id}, 'Rejected', '${ord.customer_email}', '${itemsList}')">Reject ✖</button>
+          <button class="sidebar-btn sidebar-btn-primary" style="padding:.4rem 1rem;font-size:.75rem;" onclick="updateOrderStatus(${ord.id}, 'Accepted', '${esc(ord.customer_email)}', '${esc(itemsList)}')">Accept ✔</button>
+          <button class="sidebar-btn sidebar-btn-danger" style="padding:.4rem 1rem;font-size:.75rem;" onclick="updateOrderStatus(${ord.id}, 'Rejected', '${esc(ord.customer_email)}', '${esc(itemsList)}')">Reject ✖</button>
         </div>
       ` : ''}
     `;
@@ -871,27 +1267,52 @@ async function renderAdminOrders() {
   });
 }
 
-async function updateOrderStatus(orderId, status, customerEmail, itemsList) {
+async function updateOrderStatus(orderId, newStatus, customerEmail, itemsSummary) {
+  const token = localStorage.getItem('sb_user_token');
+  if (!token) {
+    showToast('Unauthorized. Please log in.', 'error');
+    return;
+  }
+
+  // 1. Update the order status in Supabase
   const res = await sbFetch(`/rest/v1/orders?id=eq.${orderId}`, {
     method: 'PATCH',
-    headers: { 'Prefer': 'return=minimal' },
-    body: JSON.stringify({ status })
+    headers: { 
+      'Authorization': 'Bearer ' + token,
+      'Prefer': 'return=representation',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ status: newStatus })
   });
 
   if (res.ok) {
-    if (status === 'Accepted') {
-      console.log(`[GMAIL SIMULATION] Sending to ${customerEmail}: "order accepted kindly take a look in these email if u want to ask any questions u can message here in the gmail or the facebook page thank you! Items: ${itemsList}"`);
-      showToast(`Order accepted! Confirmation email dispatched to ${customerEmail} ✉️`, 'success');
-    } else {
-      console.log(`[GMAIL SIMULATION] Sending to ${customerEmail}: "order has been rejected pls try again"`);
-      showToast(`Order rejected. Notification sent to ${customerEmail}.`, 'info');
-    }
+    showToast(`Order status updated to ${newStatus}! 🌸`, 'success');
+    renderAdminOrders(); // Refresh admin list
 
-    await logSystemAction('ORDER_STATUS_UPDATE', `Order #${orderId} marked as ${status} for ${customerEmail}`);
-    renderAdminOrders();
+    // 2. If order is accepted, trigger the payment instruction email
+    if (newStatus === 'Accepted') {
+      await sendOrderAcceptedEmail(customerEmail, itemsSummary);
+    }
   } else {
     showToast('Failed to update order status.', 'error');
   }
+}
+
+async function sendOrderAcceptedEmail(email, items) {
+  const subject = encodeURIComponent("Your Fuzz & Bloom Order Has Been Accepted! 🌸");
+  const body = encodeURIComponent(
+    `Hello! 🌸\n\nYour order for (${items}) has been accepted by Fuzz & Bloom!\n\n` +
+    `Since we do not have direct online checkout transactions yet, you can send your payment through:\n` +
+    `• Our official Facebook Page: https://www.facebook.com/profile.php?id=61588443693937\n` +
+    `• Right here by replying to this email\n\n` +
+    `Once payment is confirmed, we will process your handmade items right away! Thank you so much! ✨`
+  );
+
+  // Opens Gmail directly in a new tab with the recipient, subject, and body pre-filled
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}&body=${body}`;
+  window.open(gmailUrl, '_blank');
+  
+  showToast('Opening Gmail compose tab for customer! ✉️', 'success');
 }
 
 async function renderAdminLogs() {
@@ -1003,3 +1424,43 @@ if(loginPanel) {
   loginPanel.style.display='flex';
   loginPanel.classList.add('active');
 }
+
+// Function to update mobile auth text based on login state
+function updateMobileAuthState() {
+  const mobileAuthLink = document.getElementById('mobileAuthLink');
+  if (!mobileAuthLink) return;
+
+  const token = localStorage.getItem('sb_user_token') || localStorage.getItem('sb-pjcfervptwugvpgcghve-auth-token');
+  
+  if (token) {
+    mobileAuthLink.textContent = 'Logout';
+    mobileAuthLink.style.color = '#ff9ab2'; // Soft red/pink for logout
+  } else {
+    mobileAuthLink.textContent = 'Login / Sign Up';
+    mobileAuthLink.style.color = 'var(--gold)';
+  }
+}
+
+// Action handler when clicked on mobile menu
+function handleMobileAuthClick() {
+  const token = localStorage.getItem('sb_user_token') || localStorage.getItem('sb-pjcfervptwugvpgcghve-auth-token');
+  
+  if (token) {
+    // Perform logout actions
+    localStorage.removeItem('sb_user_token');
+    localStorage.removeItem('sb-pjcfervptwugvpgcghve-auth-token');
+    showToast('Logged out successfully.', 'info');
+    updateMobileAuthState();
+    if (typeof updateDesktopAuthState === 'function') updateDesktopAuthState();
+  } else {
+    // Open login modal
+    if (typeof openAuthModal === 'function') {
+      openAuthModal('login');
+    }
+  }
+}
+
+// Run on page load
+document.addEventListener('DOMContentLoaded', () => {
+  updateMobileAuthState();
+});

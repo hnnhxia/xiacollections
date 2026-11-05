@@ -244,19 +244,25 @@
         <li>
           <a href="#" onclick="openCartModal()" id="navCartBtn">🛒 Cart (<span id="cartCount">0</span>)</a>
         </li>
-      </ul>
-      <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
-    </div>
+</ul>
+    <!-- ADD THIS SPAN FOR MOBILE USERNAME -->
+    <span id="mobileUsernameDisplay" style="font-size: 0.85rem; font-family: var(--ff-display); color: var(--bark); font-weight: 600; display: none; margin-right: 0.5rem;"></span>
+    
+    <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()"><span></span><span></span><span></span></button>
+  </div>
   </nav>
 
-  <div class="mobile-menu" id="mobileMenu">
-    <a href="#about" class="mobile-link">About</a>
-    <a href="#gallery" class="mobile-link">Gallery</a>
-    <a href="#collection" class="mobile-link">Shop</a>
-    <a href="#process" class="mobile-link">Process</a>
-    <a href="#reviews" class="mobile-link">Reviews</a>
-    <a href="#contact" class="mobile-link">Contact</a>
+<div class="mobile-menu" id="mobileMenu">
+    <a href="#about" class="mobile-link" onclick="toggleMobileMenu()">About</a>
+    <a href="#gallery" class="mobile-link" onclick="toggleMobileMenu()">Gallery</a>
+    <a href="#collection" class="mobile-link" onclick="toggleMobileMenu()">Shop</a>
+    <a href="#process" class="mobile-link" onclick="toggleMobileMenu()">Process</a>
+    <a href="#reviews" class="mobile-link" onclick="toggleMobileMenu()">Reviews</a>
+    <a href="#contact" class="mobile-link" onclick="toggleMobileMenu()">Contact</a>
+    <a href="#" id="mobileAuthLink" onclick="handleMobileAuthClick(); toggleMobileMenu();" style="color:var(--gold)">Login / Sign Up</a>
+    <a href="#" onclick="openCartModal(); toggleMobileMenu();">🛒 Cart (<span id="mobileCartCount">0</span>)</a>
   </div>
+
 
   <section id="hero">
     <div class="hero-text">
@@ -378,6 +384,14 @@
             <button onclick="addToCart('Flower on a Pot', '₱149')" class="btn btn-secondary" style="width:100%;justify-content:center;margin-top:.5rem;font-size:.78rem;padding:.5rem;">🛒 Add to Cart</button>
           </div>
         </div>
+
+<div class="product-footer">
+  <div class="product-price">₱150.00</div>
+  <!-- ADD TO CART BUTTON FOR DESKTOP & MOBILE -->
+  <button class="btn btn-secondary add-to-cart-mobile-btn" onclick="addToCart('Product Name', 150)">
+    🛒 Add to Cart
+  </button>
+</div>
 
         <div class="product-card price-card reveal" style="transition-delay:.1s;cursor:none">
           <div class="product-img price-card-img-wrap">
